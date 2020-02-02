@@ -5,12 +5,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import logging
 
+tf.compat.v1.enable_eager_execution()
 tfds.disable_progress_bar()
 
 logger = tf.get_logger()
 logger.setLevel(logging.ERROR)
 
-dataset, metadata = tfds.load('fashion_mnist', as_supervised=True, with_info=True)
+dataset, metadata = tfds.load('fashion_mnist', as_supervised=True, with_info=True, shuffle_files=True)
 train_dataset, test_dataset = dataset['train'], dataset['test']
 
 class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
@@ -38,14 +39,22 @@ test_dataset = test_dataset.map(normalize)
 train_dataset = train_dataset.cache()
 test_dataset = test_dataset.cache()
 
+# ~~~~~~~~ Good above ~~~~~~~~~~
+
 # Take a single image, and remove the color dimension by reshaping
-for image, label in test_dataset.take(1):
-    break
-image = image.numpy().reshape((28, 28))
+# img = 0
+# for image, label in test_dataset.take(1):
+#     img = image.numpy().reshape((28, 28))
+#     break
+img = test_dataset.take(1)
+print("cool stuff incoming...")
+print(img.numpy())
+img = img.numpy().reshape((28, 28))
 
 # Plot the image - voila a piece of fashion clothing
 plt.figure()
-plt.imshow(image, cmap=plt.cm.binary)
+# plt.imshow(img, cmap=plt.cm)
+plt.imshow(img, cmap=plt.cm.binary)
 plt.colorbar()
 plt.grid(False)
 plt.show()
