@@ -11,7 +11,7 @@ from FashionMNIST.DataUtils import normalize
 from FashionMNIST.ImagePlotUtils import plot_image, plot_value_array, class_names, show_plot
 
 NUMBER_OF_EPOCHS = 5
-SHOW_RAW_IMAGES = False
+SHOW_TRAINING_IMAGES = False
 SHOW_PREDICTION_IMAGES = True
 
 tf.compat.v1.enable_eager_execution()
@@ -48,7 +48,7 @@ plt.figure()
 plt.imshow(img, cmap=plt.cm.get_cmap("binary"))
 plt.colorbar()
 plt.grid(False)
-show_plot(SHOW_RAW_IMAGES, "Plotting single image")
+show_plot(SHOW_TRAINING_IMAGES, "Plotting single image")
 
 plt.figure(figsize=(10, 10))
 i = 0
@@ -61,7 +61,7 @@ for (image, label) in test_dataset.take(25):
     plt.imshow(image, cmap=plt.cm.get_cmap("binary"))
     plt.xlabel(class_names[label])
     i += 1
-show_plot(SHOW_RAW_IMAGES, "Plotting grid of images")
+show_plot(SHOW_TRAINING_IMAGES, "Plotting grid of images")
 
 # The actual ML part of this class
 print("Building the model...")
@@ -97,7 +97,7 @@ plt.subplot(1, 2, 1)
 plot_image(i, predictions, test_labels, test_images)
 plt.subplot(1, 2, 2)
 plot_value_array(i, predictions, test_labels)
-show_plot(SHOW_PREDICTION_IMAGES, "Plotting test image #{} and prediction".format(i))
+show_plot(SHOW_PREDICTION_IMAGES, "Test image #{} and prediction".format(i))
 
 i = 12
 plt.figure(figsize=(6, 3))
@@ -105,7 +105,7 @@ plt.subplot(1, 2, 1)
 plot_image(i, predictions, test_labels, test_images)
 plt.subplot(1, 2, 2)
 plot_value_array(i, predictions, test_labels)
-show_plot(SHOW_PREDICTION_IMAGES, "Plotting test image #{} and prediction".format(i))
+show_plot(SHOW_PREDICTION_IMAGES, "Test image #{} and prediction".format(i))
 
 # Plot the first X test images, their predicted label, and the true label
 # Color correct predictions in blue, incorrect predictions in red
