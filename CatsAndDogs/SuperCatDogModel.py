@@ -59,32 +59,32 @@ print("Augmenting images...")
 if SHOW_AUGMENTATIONS:
     print("Displaying horizontal flip")
     image_gen = ImageDataGenerator(rescale=1. / 255, horizontal_flip=True)
-    train_data_gen = image_gen.flow_from_directory(batch_size=BATCH_SIZE,
-                                                   directory=train_dir,
-                                                   shuffle=True,
-                                                   target_size=(IMG_SHAPE, IMG_SHAPE))
+    augmented_data_gen = image_gen.flow_from_directory(batch_size=BATCH_SIZE,
+                                                       directory=train_dir,
+                                                       shuffle=True,
+                                                       target_size=(IMG_SHAPE, IMG_SHAPE))
 
-    augmented_images = [train_data_gen[0][0][0] for i in range(5)]
+    augmented_images = [augmented_data_gen[0][0][0] for i in range(5)]
     plot_images(augmented_images)
 
 if SHOW_AUGMENTATIONS:
     print("Displaying image rotation")
     image_gen = ImageDataGenerator(rescale=1. / 255, rotation_range=45)
-    train_data_gen = image_gen.flow_from_directory(batch_size=BATCH_SIZE,
-                                                   directory=train_dir,
-                                                   shuffle=True,
-                                                   target_size=(IMG_SHAPE, IMG_SHAPE))
-    augmented_images = [train_data_gen[0][0][0] for i in range(5)]
+    augmented_data_gen = image_gen.flow_from_directory(batch_size=BATCH_SIZE,
+                                                       directory=train_dir,
+                                                       shuffle=True,
+                                                       target_size=(IMG_SHAPE, IMG_SHAPE))
+    augmented_images = [augmented_data_gen[0][0][0] for i in range(5)]
     plot_images(augmented_images)
 
 if SHOW_AUGMENTATIONS:
     print("Displaying zoom")
     image_gen = ImageDataGenerator(rescale=1. / 255, zoom_range=0.5)
-    train_data_gen = image_gen.flow_from_directory(batch_size=BATCH_SIZE,
-                                                   directory=train_dir,
-                                                   shuffle=True,
-                                                   target_size=(IMG_SHAPE, IMG_SHAPE))
-    augmented_images = [train_data_gen[0][0][0] for i in range(5)]
+    augmented_data_gen = image_gen.flow_from_directory(batch_size=BATCH_SIZE,
+                                                       directory=train_dir,
+                                                       shuffle=True,
+                                                       target_size=(IMG_SHAPE, IMG_SHAPE))
+    augmented_images = [augmented_data_gen[0][0][0] for i in range(5)]
     plot_images(augmented_images)
 
 print("Applying augmentations to training set...")
@@ -100,7 +100,8 @@ image_gen_train = ImageDataGenerator(
 train_data_gen = image_gen_train.flow_from_directory(batch_size=BATCH_SIZE,
                                                      directory=train_dir,
                                                      shuffle=True,
-                                                     target_size=(IMG_SHAPE, IMG_SHAPE))
+                                                     target_size=(IMG_SHAPE, IMG_SHAPE),
+                                                     class_mode='binary')
 augmented_images = [train_data_gen[0][0][0] for i in range(5)]
 if SHOW_AUGMENTATIONS:
     plot_images(augmented_images)
@@ -109,7 +110,6 @@ print("Creating validation set...")
 validation_image_generator = ImageDataGenerator(rescale=1./255)  # Generator for our validation data
 val_data_gen = validation_image_generator.flow_from_directory(batch_size=BATCH_SIZE,
                                                               directory=validation_dir,
-                                                              shuffle=False,
                                                               target_size=(IMG_SHAPE, IMG_SHAPE),  # (150,150)
                                                               class_mode='binary')
 
@@ -132,8 +132,8 @@ model = tf.keras.models.Sequential([
     tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
     tf.keras.layers.MaxPooling2D(2, 2),
 
-    tf.keras.layers.Flatten(),
     tf.keras.layers.Dropout(0.5),
+    tf.keras.layers.Flatten(),
     tf.keras.layers.Dense(512, activation='relu'),
     tf.keras.layers.Dense(2, activation='softmax')
 ])
