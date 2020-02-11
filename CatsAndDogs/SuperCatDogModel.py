@@ -1,4 +1,5 @@
 # https://colab.research.google.com/github/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l05c01_dogs_vs_cats_without_augmentation.ipynb
+# Super CatDog model incorporates dropout and image augmentation to make model more resilient.
 
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -13,6 +14,7 @@ logger = tf.get_logger()
 logger.setLevel(logging.ERROR)
 
 SHOW_PRE_TRAINING_INFO = False
+SHOW_AUGMENTATIONS = False
 SHOW_POST_TRAINING_INFO = False
 EPOCHS = 5  # 100 is recommended
 
@@ -52,15 +54,59 @@ if SHOW_PRE_TRAINING_INFO:
 BATCH_SIZE = 100  # Number of training examples to process before updating our models variables
 IMG_SHAPE = 150  # Our training data consists of images with width of 150 pixels and height of 150 pixels
 
-train_image_generator = ImageDataGenerator(rescale=1./255)  # Generator for our training data
+print("Augmenting images...")
+
+if SHOW_AUGMENTATIONS:
+    print("Displaying horizontal flip")
+    image_gen = ImageDataGenerator(rescale=1. / 255, horizontal_flip=True)
+    train_data_gen = image_gen.flow_from_directory(batch_size=BATCH_SIZE,
+                                                   directory=train_dir,
+                                                   shuffle=True,
+                                                   target_size=(IMG_SHAPE, IMG_SHAPE))
+
+    augmented_images = [train_data_gen[0][0][0] for i in range(5)]
+    plot_images(augmented_images)
+
+if SHOW_AUGMENTATIONS:
+    print("Displaying image rotation")
+    image_gen = ImageDataGenerator(rescale=1. / 255, rotation_range=45)
+    train_data_gen = image_gen.flow_from_directory(batch_size=BATCH_SIZE,
+                                                   directory=train_dir,
+                                                   shuffle=True,
+                                                   target_size=(IMG_SHAPE, IMG_SHAPE))
+    augmented_images = [train_data_gen[0][0][0] for i in range(5)]
+    plot_images(augmented_images)
+
+if SHOW_AUGMENTATIONS:
+    print("Displaying zoom")
+    image_gen = ImageDataGenerator(rescale=1. / 255, zoom_range=0.5)
+    train_data_gen = image_gen.flow_from_directory(batch_size=BATCH_SIZE,
+                                                   directory=train_dir,
+                                                   shuffle=True,
+                                                   target_size=(IMG_SHAPE, IMG_SHAPE))
+    augmented_images = [train_data_gen[0][0][0] for i in range(5)]
+    plot_images(augmented_images)
+
+print("Applying augmentations to training set...")
+image_gen_train = ImageDataGenerator(
+      rescale=1./255,
+      rotation_range=40,
+      width_shift_range=0.2,
+      height_shift_range=0.2,
+      shear_range=0.2,
+      zoom_range=0.2,
+      horizontal_flip=True,
+      fill_mode='nearest')
+train_data_gen = image_gen_train.flow_from_directory(batch_size=BATCH_SIZE,
+                                                     directory=train_dir,
+                                                     shuffle=True,
+                                                     target_size=(IMG_SHAPE, IMG_SHAPE))
+augmented_images = [train_data_gen[0][0][0] for i in range(5)]
+if SHOW_AUGMENTATIONS:
+    plot_images(augmented_images)
+
+print("Creating validation set...")
 validation_image_generator = ImageDataGenerator(rescale=1./255)  # Generator for our validation data
-
-train_data_gen = train_image_generator.flow_from_directory(batch_size=BATCH_SIZE,
-                                                           directory=train_dir,
-                                                           shuffle=True,
-                                                           target_size=(IMG_SHAPE, IMG_SHAPE),  # (150,150)
-                                                           class_mode='binary')
-
 val_data_gen = validation_image_generator.flow_from_directory(batch_size=BATCH_SIZE,
                                                               directory=validation_dir,
                                                               shuffle=False,
@@ -87,6 +133,7 @@ model = tf.keras.models.Sequential([
     tf.keras.layers.MaxPooling2D(2, 2),
 
     tf.keras.layers.Flatten(),
+    tf.keras.layers.Dropout(0.5),
     tf.keras.layers.Dense(512, activation='relu'),
     tf.keras.layers.Dense(2, activation='softmax')
 ])
@@ -128,7 +175,7 @@ plt.plot(epochs_range, loss, label='Training Loss')
 plt.plot(epochs_range, val_loss, label='Validation Loss')
 plt.legend(loc='upper right')
 plt.title('Training and Validation Loss')
-plt.savefig('./training_vs_validation.png')
+plt.savefig('./super_training_vs_validation.png')
 
 if SHOW_POST_TRAINING_INFO:
     plt.show()
