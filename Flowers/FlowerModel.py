@@ -4,13 +4,17 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import os
 import numpy as np
-import glob
-import shutil
+
 import matplotlib.pyplot as plt
-from Flowers.ImageUtils import flower_classes, plot_images
+from tensorflow_core.python.keras import Sequential
+from tensorflow_core.python.keras.layers import Dense, Dropout, Flatten, MaxPooling2D, Conv2D
+
+from Flowers.ImageUtils import plot_images
+from Flowers.OSUtils import organize_photos
 
 EPOCHS = 3  # 80 is recommended
-SHOW_PRE_TRAINING_INFO = True
+ORGANIZE_PHOTOS = False
+SHOW_PRE_TRAINING_INFO = False
 
 print("Downloading flower photos if not already present...")
 _URL = "https://storage.googleapis.com/download.tensorflow.org/example_images/flower_photos.tgz"
@@ -19,22 +23,8 @@ zip_file = tf.keras.utils.get_file(origin=_URL,
                                    extract=True)
 base_dir = os.path.join(os.path.dirname(zip_file), 'flower_photos')
 
-print("Organizing training and validation sets...")
-for cl in flower_classes:
-    img_path = os.path.join(base_dir, cl)
-    images = glob.glob(img_path + '/*.jpg')
-    print("{}: {} Images".format(cl, len(images)))
-    train, val = images[:round(len(images)*0.8)], images[round(len(images)*0.8):]
-
-    for t in train:
-        if not os.path.exists(os.path.join(base_dir, 'train', cl)):
-            os.makedirs(os.path.join(base_dir, 'train', cl))
-        shutil.move(t, os.path.join(base_dir, 'train', cl))
-
-    for v in val:
-        if not os.path.exists(os.path.join(base_dir, 'val', cl)):
-            os.makedirs(os.path.join(base_dir, 'val', cl))
-        shutil.move(v, os.path.join(base_dir, 'val', cl))
+if ORGANIZE_PHOTOS:
+    organize_photos(base_dir)
 
 print("Creating training and validation sets...")
 train_dir = os.path.join(base_dir, 'train')
@@ -76,10 +66,13 @@ if SHOW_PRE_TRAINING_INFO:
 train_image_gen = ImageDataGenerator(rescale=1. / 255,
                                      horizontal_flip=True,
                                      rotation_range=45,
+                                     width_shift_range=.15,
+                                     height_shift_range=.15,
                                      zoom_range=.5)
 train_data_gen = train_image_gen.flow_from_directory(batch_size=batch_size,
                                                      directory=train_dir,
                                                      target_size=(IMG_SHAPE, IMG_SHAPE),
+                                                     class_mode='sparse',
                                                      shuffle=True)
 if SHOW_PRE_TRAINING_INFO:
     print("Displaying all augmentations")
@@ -93,39 +86,41 @@ val_data_gen = val_image_gen.flow_from_directory(batch_size=batch_size,
                                                  class_mode='sparse')
 
 print("Configuring model...")
-model = tf.keras.models.Sequential([
-    tf.keras.layers.Conv2D(16, (3, 3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2, 2),
+model = Sequential()
 
-    tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2, 2),
+model.add(Conv2D(16, 3, padding='same', activation='relu', input_shape=(IMG_SHAPE, IMG_SHAPE, 3)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2, 2),
+model.add(Conv2D(32, 3, padding='same', activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Flatten(),
-    tf.keras.layers.Dense(512, activation='relu'),
-    tf.keras.layers.Dense(5, activation='softmax')
-])
+model.add(Conv2D(64, 3, padding='same', activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Flatten())
+model.add(Dropout(0.2))
+model.add(Dense(512, activation='relu'))
+
+model.add(Dropout(0.2))
+model.add(Dense(5, activation='softmax'))
 
 model.compile(optimizer='adam',
-              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
 print("Training model...")
 history = model.fit_generator(
     train_data_gen,
-    steps_per_epoch=int(np.ceil(train_data_gen.__sizeof__() / float(batch_size))),
+    steps_per_epoch=int(np.ceil(train_data_gen.n / float(batch_size))),
     epochs=EPOCHS,
     validation_data=val_data_gen,
-    validation_steps=int(np.ceil(val_data_gen.__sizeof__() / float(batch_size)))
+    validation_steps=int(np.ceil(val_data_gen.n / float(batch_size)))
     )
 
 print("Training complete")
 
-acc = history.history['acc']  # tensorflow 1.0 = 'acc', 2.0 = 'accuracy'
-val_acc = history.history['val_acc']
+acc = history.history['accuracy']  # tensorflow 1.0 = 'acc', 2.0 = 'accuracy'
+val_acc = history.history['val_accuracy']
 loss = history.history['loss']
 val_loss = history.history['val_loss']
 epochs_range = range(EPOCHS)
@@ -143,4 +138,4 @@ plt.plot(epochs_range, loss, label='Training Loss')
 plt.plot(epochs_range, val_loss, label='Validation Loss')
 plt.legend(loc='upper right')
 plt.title('Training and Validation Loss')
-plt.savefig('./super_training_vs_validation.png')
+plt.savefig('./training_vs_validation.png')
