@@ -1,4 +1,5 @@
 # https://colab.research.google.com/github/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l06c01_tensorflow_hub_and_transfer_learning.ipynb
+# This class will download an image from a given url and, using tfhub's mobilenet, predict what's in the image
 
 import tensorflow as tf
 import tensorflow_hub as hub
@@ -10,15 +11,16 @@ import logging
 logger = tf.get_logger()
 logger.setLevel(logging.ERROR)
 
-CLASSIFIER_URL = 'https://tfhub.dev/google/tf2-preview/mobilenet_v2/classification/4'
-CLASSIFIER_LABELS = 'https://storage.googleapis.com/download.tensorflow.org/data/ImageNetLabels.txt'
-
 # tf.keras.utils.get_file() will try to download from the url given unless the name given is already cached.
 # Note that random urls off the internet might return 403 forbidden errors.
 # EXAMPLE_IMAGE_URL = 'https://storage.googleapis.com/download.tensorflow.org/example_images/grace_hopper.jpg'
 TEST_IMAGE_NAME = 'Orca2.jpg'
 TEST_IMAGE_URL = 'https://vignette.wikia.nocookie.net/animals-are-cool/images/5/5e/Lunge_popup.jpg/revision/latest?cb' \
                  '=20180313213817 '
+
+CLASSIFIER_URL = 'https://tfhub.dev/google/tf2-preview/mobilenet_v2/classification/4'
+CLASSIFIER_LABELS = 'https://storage.googleapis.com/download.tensorflow.org/data/ImageNetLabels.txt'
+
 IMAGE_RES = 224
 
 model = tf.keras.Sequential([
