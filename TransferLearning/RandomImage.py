@@ -14,7 +14,7 @@ logger.setLevel(logging.ERROR)
 # tf.keras.utils.get_file() will try to download from the url given unless the name given is already cached.
 # Note that random urls off the internet might return 403 forbidden errors.
 # EXAMPLE_IMAGE_URL = 'https://storage.googleapis.com/download.tensorflow.org/example_images/grace_hopper.jpg'
-TEST_IMAGE_NAME = 'Orca2.jpg'
+TEST_IMAGE_NAME = 'Jokes1.jpg'
 TEST_IMAGE_URL = 'https://vignette.wikia.nocookie.net/animals-are-cool/images/5/5e/Lunge_popup.jpg/revision/latest?cb' \
                  '=20180313213817 '
 
